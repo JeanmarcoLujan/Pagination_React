@@ -68,3 +68,78 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+-------------------------------------------------------------
+
+import {  useState } from "react";
+import "./App.css";
+import { useQuery, gql } from "@apollo/client";
+
+const GET_LOCATIONS = gql`
+query GetLocations($page: Int!, $filter: FilterLocation) {
+  locations(page: $page, filter: $filter) {
+    info {
+      count
+      pages
+      next
+      prev
+    }
+    results {
+      id
+      name
+      type
+      dimension
+    }
+  }
+}
+`;
+
+function App() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { loading, error, data } = useQuery(GET_LOCATIONS, {
+    variables: {
+      page: currentPage,
+      filter: { id: 3 } // Filter for location id equal to 3
+    },
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  const locations = data.locations.results;
+  const pageInfo = data.locations.info;
+
+  return (
+    <div>
+      <h1>Rick and Morty Locations</h1>
+      <ul>
+        {locations.map((location) => (
+          <li key={location.id}>
+            <p>ID: {location.id}</p>
+            <p>Name: {location.name}</p>
+            <p>Type: {location.type}</p>
+            <p>Dimension: {location.dimension}</p>
+          </li>
+        ))}
+      </ul>
+      <div>
+        <button onClick={() => setCurrentPage(currentPage - 1)} disabled={!pageInfo.prev}>
+          Previous Page
+        </button>
+        <span>
+          Page {currentPage} of {pageInfo.pages}
+        </span>
+        <button onClick={() => setCurrentPage(currentPage + 1)} disabled={!pageInfo.next}>
+          Next Page
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+
+------------------------
